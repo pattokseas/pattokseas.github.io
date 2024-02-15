@@ -516,7 +516,7 @@ function initCPU() {
       pc = NextPC;
     }
     PC = pc;
-    if(PC === 8) PC = 0;
+    if(PC > 0b111) PC = 0;
     setHighlightedLine(PC);
   };
   
