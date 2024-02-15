@@ -1,0 +1,606 @@
+<head>
+<title>
+CIS 2400 Simple Processor Simulator
+</title>
+<style>
+  .bordered, .bordered tr th, .bordered tr td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 0.5em;
+    padding-left: 1em;
+    padding-right: 1em;
+    text-align: center;
+    font-family: courier;
+  }
+  #control tr th:first-child, #control tr td:first-child {
+    border: none;
+    border-top: 1px solid transparent;
+    border-left: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+  }
+  #controlButtonRow {
+    border: 1px solid transparent;
+    border-bottom: 1px solid black;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  #controlButtonRow div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  #controlButtonRow div button {
+    font-size: 1.2em;
+  }
+  #loop {
+    border-top: 1px solid transparent;
+    border-right: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    text-align: left;
+    vertical-align: bottom;
+    padding-left: 0;
+  }
+  #regfile tr td:last-child {
+    border: 1px solid transparent;
+    border-left: 1px solid black;
+    text-align: left;
+  }
+  .main {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    gap: 4em;
+  }
+  #errlog {
+    border: 1px solid transparent;
+    border-top: 1px solid black;
+    color: red;
+  }
+  #guide, #guide tr th, #guide tr td {
+    text-align: left;
+  }
+  body {
+    padding-bottom: 10em;
+  }
+</style>
+</head>
+<body>
+
+<div class="main" style="padding: 3em;">
+<h1>CIS 2400 Simple Processor Simulator</h1>
+</div>
+
+<!--
+<div class="main">
+<div style="padding-bottom: 4em">
+  <b>Algorithm (Notes)</b>
+  <pre contenteditable="true" 
+       style="width: 40em; border: 1px solid black; min-height: 5em; padding: 1em"
+       ></pre>
+</div>
+</div>
+-->
+
+<div class="main" style="padding-left: 10em; padding-right: 10em; padding-bottom: 4em">
+For all numerical values, note that the default format is binary. To enter a number in hex, start it with x, e.g. xABCD. To enter a number in decimal, start it with #, e.g. #123. Do not enter anything in the boxes except digits (0-9, a-f, A-F) and the format symbols (x, X, #). You can leave a box blank if its value doesn't matter (or enter only X).
+<table class="bordered" style="margin-top: -3em" id="guide">
+<tr><th>Button</th><th>Meaning</th></tr>
+<tr><td>Run</td><td>Step through instructions without stopping.</td></tr>
+<tr><td>Stop</td><td>Stop the processor while it is running. Also enables editing.</td></tr>
+<tr><td>Step</td><td>Execute one instruction.</td></tr>
+<tr><td>Reset</td><td>Stop and go back to the beginning. Also resets registers to initial values.</td></tr>
+<tr><td>Clear</td><td>Reset and delete every initial value and instruction.</td></tr>
+</table>
+</div>
+  
+<div class="main">
+  
+<table class="bordered" id="registers">
+  <tr><th>Register</th><th>Label</th><th>Initial Value</th></tr>
+  <tr>
+    <td>000</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>001</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>010</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>011</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>100</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>101</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>110</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>111</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+</table>
+  
+<table class="bordered" id="control">
+  <tr><th></th>
+    <td colspan="7" id="controlButtonRow"><div>
+      <button id="run">Run</button>
+      <button id="stop">Stop</button>
+      <button id="step">Step</button>
+      <button id="reset">Reset</button>
+      <button id="clear">Clear</button>
+    </div></td>
+    <td style="border: 1px solid transparent"></td>
+  </tr>
+  <tr>
+    <th>Row</th><th>+/-</th><th>A<sub>R1</sub></th><th>A<sub>R2</sub></th>
+    <th>A<sub>W</sub></th><th>WE</th><th>NZP</th><th>NextPC</th>
+    <td rowspan="9" id="loop">
+      <input name="loop111" id="loop111" type="checkbox" checked>
+      <label for="loop111">Loop</label>
+    </td>
+  </tr>
+  <tr>
+    <td>000</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>001</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>010</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>011</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>100</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>101</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>110</td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+  </tr>
+  <tr>
+    <td>111</td>
+    <td>X</td>
+    <td>X</td>
+    <td>X</td>
+    <td>X</td>
+    <td>0</td>
+    <td>111</td>
+    <td>111</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td colspan="7" id="errlog"></td>
+    <td style="border: 1px solid transparent"></td>
+  </tr>
+</table>
+
+<table class="bordered" id="regfile">
+<tr><th colspan="3">Register Values</th><td></td></tr>
+<tr><th>Register</th><th>Decimal</th><th style="min-width: 3em">Hex</th><td></td></tr>
+<tr><td>000</td><td></td><td></td><td></td></tr>
+<tr><td>001</td><td></td><td></td><td></td></tr>
+<tr><td>010</td><td></td><td></td><td></td></tr>
+<tr><td>011</td><td></td><td></td><td></td></tr>
+<tr><td>100</td><td></td><td></td><td></td></tr>
+<tr><td>101</td><td></td><td></td><td></td></tr>
+<tr><td>110</td><td></td><td></td><td></td></tr>
+<tr><td>111</td><td></td><td></td><td></td></tr>
+</table>
+
+</div>
+
+<div class="main" style="padding: 5em">
+<div style="text-align:center">
+Here is the schematic for the simple processor:<br>
+<img src="./schematic.png"><br>
+In our case, n=3 and k=17
+</div>
+</div>
+
+
+<script>
+function getControlRow(row) {
+  const controlTable = document.getElementById("control").children[0];
+  return controlTable.children[row + 2];
+}
+
+const getFromRow = (row, i) => getControlRow(row).children[i].innerText;
+const getOp = row => getFromRow(row, 1);
+const getR1 = row => getFromRow(row, 2);
+const getR2 = row => getFromRow(row, 3);
+const getAW = row => getFromRow(row, 4);
+const getWE = row => getFromRow(row, 5);
+const getNZP = row => getFromRow(row, 6);
+const getNextPC = row => getFromRow(row, 7);
+
+function parseOp(row) {
+  switch(getOp(row).trim().replace(/\n/g, "")) {
+    case "+" : return 0;
+    case "-" : return 1;
+    case "0" : return 0;
+    case "1" : return 1;
+    case "X" : case "x" : case "" : return "";
+    default : return "error";
+  }
+}
+
+const chr = x => x.charCodeAt(0);
+const charSub = (x, y) => chr(x) - chr(y);
+
+function parseNumBase(numStr, base) {
+  if(numStr === "") return "";
+  let x = 0;
+  let negative = false;
+  if(base === 10 && numStr[0] === '-') {
+    negative = true;
+    numStr = numStr.slice(1);
+  }
+  for(let i = 0; i < numStr.length; i++) {
+    x *= base;
+    let digit = chr(numStr[i]);
+    if(digit >= chr('0') && digit <= chr('1')) x += digit - chr('0');
+    else if(digit >= chr('0') && digit <= chr('9') && base > 2) x += digit - chr('0');
+    else if(digit >= chr('a') && digit <= chr('f') && base === 16) x += digit - chr('a') + 10;
+    else return "error";
+  }
+  if(negative) x *= -1;
+  return x;
+}
+
+function parseNumber(numStr) {
+  if(numStr === "") return "";
+  let x = numStr.trim().replace(/\n/g, "").toLowerCase();
+  if(x[0] === '#') return parseNumBase(x.slice(1), 10);
+  if(x[0] === 'x') return parseNumBase(x.slice(1), 16);
+  return parseNumBase(x, 2);
+}
+
+const ADD = (x, y) => (x + y) % (2**16);
+const SUB = (x, y) => (x - y) % (2**16);
+const TEST = (x, nzp) => 
+  (x < 0 && (nzp & 4)) || (x === 0 && (nzp & 2)) || (x > 0 && (nzp & 1));
+const NEXTPC = (PC, ALUout, NZP, NextPC) => TEST(ALUout, NZP) ? NextPC : PC + 1;
+
+function getRegister(r) {
+  const regfile = document.getElementById("regfile").children[0];
+  return parseInt(regfile.children[r + 2].children[1].innerText);
+}
+
+function invertHex(digit) {
+  let hex = ['0', '1', '2', '3', '4', '5', '6', '7', '8',
+    '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+  let index;
+  let dn = chr(digit);
+  if(dn >= chr('0') && dn <= chr('9')) index = dn - chr('0');
+  else if(dn >= chr('A') && dn <= chr('F')) index = dn - chr('A') + 10;
+  else index = dn - chr('a') + 10;
+  return hex[15 - index];
+}
+
+function negHex(str) {
+  let out = "";
+  for(let i = 0; i < str.length; i++) out += invertHex(str[i]);
+  return out;
+}
+
+function toHex(x) {
+  let negative = false;
+  if(x < 0) {
+    negative = true;
+    x = -x - 1;
+  }
+  let str = x.toString(16).toUpperCase();
+  while(str.length < 4) str = "0" + str;
+  return "x" + (negative ? negHex(str) : str);
+}
+
+function toBin(x) {
+  let str = x.toString(2);
+  while(str.length < 3) str = "0" + str;
+  return str;
+}
+
+function setRegister(r, v) {
+  const regfile = document.getElementById("regfile").children[0];
+  regfile.children[r + 2].children[1].innerText = v;
+  regfile.children[r + 2].children[2].innerText = v === "" ? "" : toHex(v);
+}
+
+function setEditable() {
+  const row111 = getControlRow(7);
+  let editable = !document.querySelector("input[name='loop111']").checked;
+  for(let i = 1; i <= 7; i++) {
+    row111.children[i].contentEditable = editable;
+    if(!editable) row111.children[i].innerText = i < 5 ? "X" : i === 5 ? "0" : "111";
+  }
+}
+
+document.querySelector("input[name='loop111']").addEventListener("change", event =>
+  setEditable()
+);
+
+function parseBits(numStr, bits) {
+  let x = parseNumber(numStr);
+  if(x === "error" || x === "") return x;
+  let xn = x % (2**bits);
+  if(x !== xn) return "big";
+  return xn;
+}
+
+const initRegisters = document.getElementById("registers").children[0].children;
+for(let i = 0; i < 8; i++) {
+  initRegisters[i + 1].children[2].addEventListener("input", event => {
+    let content = initRegisters[i + 1].children[2].innerText;
+    let x = parseBits(content, 16);
+    if(x !== 'error' && x !== 'big') setRegister(i, x);
+    else setRegister(i, "");
+  });
+  initRegisters[i + 1].children[1].addEventListener("input", event => {
+    document.getElementById("regfile").children[0].children[i + 2].children[3].innerText =
+      initRegisters[i + 1].children[1].innerText;
+  });
+}
+
+const parseR1 = row => parseBits(getR1(row), 3);
+const parseR2 = row => parseBits(getR2(row), 3);
+const parseAW = row => parseBits(getAW(row), 3);
+const parseWE = row => parseBits(getWE(row), 1);
+const parseNZP = row => parseBits(getNZP(row), 3);
+const parseNextPC = row => parseBits(getNextPC(row), 3);
+
+function setInitEditing(editable) {
+  for(let i = 0; i < 8; i++) {
+    initRegisters[i + 1].children[2].contentEditable = editable.toString();
+    for(let j = 1; j < 8; j++)
+      getControlRow(i).children[j].contentEditable = editable.toString();
+  }
+}
+
+function setHighlightedLine(line) {
+  for(let i = 0; i < 8; i++) {
+    let row = getControlRow(i);
+    for(let j = 1; j < 8; j++)
+      row.children[j].style.background = i === line ? "#909090" : "transparent";
+  }
+}
+
+setHighlightedLine(0);
+
+const error = msg => document.getElementById("errlog").innerHTML = msg;
+
+function initCPU() {
+  let started = false;
+  let PC = 0;
+  let stepTimeout;
+  const parse_err = (parser, msg_err, msg_big) => {
+    let x = parser(PC);
+    if(x === "error") {
+      error(msg_err);
+      clearTimeout(stepTimeout);
+      return "error";
+    }
+    if(x === "big") {
+      error(msg_big);
+      clearTimeout(stepTimeout);
+      return "error";
+    }
+    return x;
+  };
+  
+  const step = () => {
+    if(!started) {
+      started = true;
+      setInitEditing(false);
+    }
+    let op = parse_err(parseOp, "Error parsing +/-", "Error parsing +/-");
+    let R1 = parse_err(parseR1, "Error parsing A<sub>R1</sub>", "A<sub>R1</sub> too big");
+    let R2 = parse_err(parseR2, "Error parsing A<sub>R2</sub>", "A<sub>R2</sub> too big");
+    let AW = parse_err(parseAW, "Error parsing A<sub>W</sub>", "A<sub>W</sub> too big");
+    let WE = parse_err(parseWE, "Error parsing WE", "Error parsing WE");
+    let NZP = parse_err(parseNZP, "Error parsing NZP", "Error parsing NZP");
+    let NextPC = parse_err(parseNextPC, "Error parsing NextPC", "NextPC too big");
+    if(op === "error" || R1 === "error" || R2 === "error" || AW === "error" ||
+        WE === "error" || NZP === "error" || NextPC === "error") return;
+    if(WE === 1 && (op === "" || R1 === "" || R2 === "" || AW === "")) {
+      error("If WE=1, there must be values for +/1. A<sub>R1</sub>. A<sub>R2</sub>, and A<sub>W</sub>");
+      clearTimeout(stepTimeout);
+      return;
+    }
+    if(NZP === "") {
+      error("NZP must have a value");
+      clearTimeout(stepTimeout);
+      return;
+    }
+    if(NZP !== 0b111 && NZP !== 0b000 && (op === "" || R1 === "" || R2 === "" || NextPC === "")) {
+      error("If NZP is not 000/111, there must be values for +/1. A<sub>R1</sub>. A<sub>R2</sub>, and NextPC");
+      clearTimeout(stepTimeout);
+      return;
+    }
+    if(NZP !== 0b000 && NextPC === "") {
+      error("If NZP is not 000, there must be a value for NextPC");
+      clearTimeout(stepTimeout);
+      return;
+    }
+    let pc = PC + 1;
+    if(WE === 1 || NZP !== 0b111 && NZP !== 0b000) {
+      let A = getRegister(R1);
+      if(isNaN(A)) {
+        error("Error: attempting to read register " + toBin(R1) + " without setting it first");
+        clearInterval(stepInterval);
+      }
+      let B = getRegister(R2);
+      if(isNaN(B)) {
+        error("Error: attempting to read register " + toBin(R2) + " without setting it first");
+        clearInterval(stepInterval);
+      }
+      let ALU = op === 0 ? ADD(A, B) : SUB(A, B);
+      if(WE === 1) setRegister(AW, ALU);
+      if(TEST(ALU, NZP)) pc = NextPC;
+    }
+    if(NZP === 0b111) {
+      if(NextPC === PC) {
+        error('<span style="color: black">Infinite Self-Loop Reached</span>');
+        clearTimeout(stepTimeout);
+      }
+      pc = NextPC;
+    }
+    PC = pc;
+    setHighlightedLine(PC);
+  };
+  
+  const run = () => {
+    step();
+    clearTimeout(stepTimeout);
+    stepTimeout = setTimeout(run, 1);
+  };
+  
+  const stop = () => {
+    clearTimeout(stepTimeout);
+    setInitEditing(true);
+  };
+  
+  const reset = () => {
+    error("");
+    stop();
+    started = false;
+    setInitEditing(true);
+    PC = 0;
+    setHighlightedLine(0);
+    for(let i = 0; i < 8; i++) {
+      let content = initRegisters[i + 1].children[2].innerText;
+      let x = parseBits(content, 16);
+      if(x !== 'error' && x !== 'big') setRegister(i, x);
+      else setRegister(i, "");
+      document.getElementById("regfile").children[0].children[i + 2].children[3].innerText =
+        initRegisters[i + 1].children[1].innerText;
+    }
+  };
+  
+  const clear = () => {
+    reset();
+    document.querySelector("input[name='loop111']").checked = true;
+    for(let i = 0; i < 8; i++) {
+      initRegisters[i + 1].children[1].innerText = "";
+      initRegisters[i + 1].children[2].innerText = "";
+      setRegister(i, "");
+      for(let j = 1; j < 8; j++)
+        getControlRow(i).children[j].innerText = "";
+      if(i == 7) {
+        getControlRow(i).children[1].innerText = "X";
+        getControlRow(i).children[2].innerText = "X";
+        getControlRow(i).children[3].innerText = "X";
+        getControlRow(i).children[4].innerText = "X";
+        getControlRow(i).children[5].innerText = "0";
+        getControlRow(i).children[6].innerText = "111";
+        getControlRow(i).children[7].innerText = "111";
+      }
+    }
+  };
+  
+  return {
+    "run" : run,
+    "stop" : stop,
+    "step" : step,
+    "reset" : reset,
+    "clear" : clear
+  }
+}
+
+const CPU = initCPU();
+CPU.reset();
+
+document.getElementById("run").onclick = CPU.run;
+document.getElementById("stop").onclick = CPU.stop;
+document.getElementById("step").onclick = CPU.step;
+document.getElementById("reset").onclick = CPU.reset;
+document.getElementById("clear").onclick = CPU.clear;
+
+function load(init) {
+  let registers = init[0];
+  let instructions = init[1];
+  for(let i = 0; i < 8; i++) {
+    if(registers[i] !== undefined) {
+      initRegisters[i + 1].children[1].innerText = registers[i][0];
+      initRegisters[i + 1].children[2].innerText = registers[i][1];
+    }
+    if(instructions[i] !== undefined) {
+      for(let j = 0; j < 7; j++)
+        getControlRow(i).children[j + 1].innerText = instructions[i][j];
+    }
+  }
+  CPU.reset();
+}
+</script>
+<script src="examples.js"></script>
+</body>
