@@ -55,6 +55,7 @@ CIS 2400 Simple Processor Simulator
     border: 1px solid transparent;
     border-top: 1px solid black;
     color: red;
+    height: 2em;
   }
   #guide, #guide tr th, #guide tr td {
     text-align: left;
@@ -85,7 +86,7 @@ CIS 2400 Simple Processor Simulator
 For all numerical values, note that the default format is binary. To enter a number in hex, start it with x, e.g. xABCD. To enter a number in decimal, start it with #, e.g. #123. Do not enter anything in the boxes except digits (0-9, a-f, A-F) and the format symbols (x, X, #). You can leave a box blank if its value doesn't matter (or enter only X).
 <table class="bordered" style="margin-top: -3em" id="guide">
 <tr><th>Button</th><th>Meaning</th></tr>
-<tr><td>Run</td><td>Execute instructions without stopping.</td></tr>
+<tr><td>Run</td><td>Step through instructions without stopping.</td></tr>
 <tr><td>Stop</td><td>Stop the processor while it is running. Also enables editing.</td></tr>
 <tr><td>Step</td><td>Execute one instruction.</td></tr>
 <tr><td>Reset</td><td>Stop and go back to the beginning. Also resets registers to initial values.</td></tr>
@@ -257,7 +258,10 @@ For all numerical values, note that the default format is binary. To enter a num
 <tr><td>110</td><td></td><td></td><td></td></tr>
 <tr><td>111</td><td></td><td></td><td></td></tr>
 </table>
+</div>
 
+<div class="main">
+<button id="saveUrl">Copy URL of saved setup</button>
 </div>
 
 <div class="main" style="padding: 5em">
@@ -602,6 +606,51 @@ function load(init) {
   }
   CPU.reset();
 }
+
+const get = window.location.toString().slice(window.location.toString().indexOf("?") + 1);
+if(get.slice(0,5) === "load=") {
+  try {
+    let toLoadStr = get.slice(5).replace(/_/g, '"');
+    let toLoad = JSON.parse(toLoadStr);
+    load(toLoad);
+  } catch (err) {
+    console.log("Failed to load, got error: " + err);
+  }
+}
+
+const getBase = () => {
+  let locationStr = window.location.toString();
+  let end = locationStr.indexOf("?");
+  if(end === -1) return locationStr;
+  return locationStr.slice(0, end);
+}
+const base = getBase();
+
+function arrStr(arr) {
+  let out = "[";
+  for(let i = 0; i < arr.length; i++) {
+    if(Array.isArray(arr[i])) out += arrStr(arr[i]);
+    else out += '_' + arr[i] + '_';
+    if(i + 1 < arr.length) out += ',';
+  }
+  return out + "]";
+}
+
+function getUrl() {
+  let registers = [];
+  let instructions = [];
+  for(let i = 0; i < 8; i++) {
+    registers.push([initRegisters[i + 1].children[1].innerText,
+      initRegisters[i + 1].children[2].innerText]);
+    let inst = [];
+    for(let j = 1; j < 8; j++) inst.push(getControlRow(i).children[j].innerText);
+    instructions.push(inst);
+  }
+  return base + "?load=" + arrStr([registers, instructions]);
+}
+
+document.getElementById("saveUrl").onclick = () => navigator.clipboard.writeText(getUrl());
+
 </script>
 <script src="examples.js"></script>
 </body>
