@@ -19,6 +19,7 @@ let exampleAdd = [
     ]
 ];
 
+// adds A nd B, result in C
 let exampleMultiply = [
     [
         ["zero", "0"],
